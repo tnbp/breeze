@@ -74,6 +74,12 @@ using TabletModeWatcher = Kirigami::TabletModeWatcher;
 #include <QQuickWindow>
 #endif
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+constexpr auto HighlightColor = QPalette::Accent;
+#else
+constexpr auto HighlightColor = QPalette::Highlight;
+#endif
+
 namespace BreezePrivate
 {
 // needed to keep track of tabbars when being dragged
@@ -135,7 +141,7 @@ public:
         if (option.showDecorationSelected && (option.state & QStyle::State_Selected)) {
             using namespace Breeze;
 
-            auto c = option.palette.brush((option.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled, QPalette::Highlight).color();
+            auto c = option.palette.brush((option.state & QStyle::State_Enabled) ? QPalette::Normal : QPalette::Disabled, HighlightColor).color();
 
             painter->setPen(c);
             c.setAlphaF(c.alphaF() * 0.3);
@@ -2698,7 +2704,9 @@ QRect Style::groupBoxSubControlRect(const QStyleOptionComplex *option, SubContro
         }
 
         // take out frame width
-        rect = insideMargin(rect, Metrics::Frame_FrameWidth);
+        if (!(groupBoxOption->features & QStyleOptionFrame::Flat)) {
+            rect = insideMargin(rect, Metrics::Frame_FrameWidth);
+        }
 
         // get state
         const bool checkable(groupBoxOption->subControls & QStyle::SC_GroupBoxCheckBox);
@@ -3950,7 +3958,7 @@ bool Style::drawFrameFocusRectPrimitive(const QStyleOption *option, QPainter *pa
         return true;
     }
 
-    const auto outlineColor(state & State_Selected ? palette.color(QPalette::HighlightedText) : palette.color(QPalette::Highlight));
+    const auto outlineColor(state & State_Selected ? palette.color(QPalette::HighlightedText) : palette.color(HighlightColor));
     painter->setRenderHint(QPainter::Antialiasing, false);
     painter->setPen(outlineColor);
     painter->drawLine(QPoint(rect.bottomLeft() - QPoint(0, 1)), QPoint(rect.bottomRight() - QPoint(0, 1)));
@@ -5889,8 +5897,8 @@ bool Style::drawProgressBarContentsControl(const QStyleOption *option, QPainter 
     if (busy) {
         const int progress(_animations->busyIndicatorEngine().value());
 
-        const auto &first = palette.color(QPalette::Highlight);
-        const auto second(KColorUtils::mix(palette.color(QPalette::Highlight), palette.color(QPalette::Window), 0.7));
+        const auto &first = palette.color(HighlightColor);
+        const auto second(KColorUtils::mix(palette.color(HighlightColor), palette.color(QPalette::Window), 0.7));
         _helper->renderProgressBarBusyContents(painter, rect, first, second, horizontal, reverse, progress);
 
     } else {
@@ -5916,7 +5924,7 @@ bool Style::drawProgressBarContentsControl(const QStyleOption *option, QPainter 
             }
         }
 
-        auto contentsColor(option->state.testFlag(QStyle::State_Selected) ? palette.color(QPalette::HighlightedText) : palette.color(QPalette::Highlight));
+        auto contentsColor(option->state.testFlag(QStyle::State_Selected) ? palette.color(QPalette::HighlightedText) : palette.color(HighlightColor));
 
         _helper->renderProgressBarGroove(painter, rect, contentsColor, palette.color(QPalette::Window));
         painter->setClipRegion(oldClipRegion);
@@ -6417,8 +6425,8 @@ bool Style::drawRubberBandControl(const QStyleOption *option, QPainter *painter,
     painter->setRenderHints(QPainter::Antialiasing);
 
     const auto &palette(option->palette);
-    const auto outline = KColorUtils::lighten(palette.color(QPalette::Highlight));
-    auto background = palette.color(QPalette::Highlight);
+    const auto outline = KColorUtils::lighten(palette.color(HighlightColor));
+    auto background = palette.color(HighlightColor);
     background.setAlphaF(0.20);
 
     painter->setPen(outline);
@@ -7444,8 +7452,7 @@ bool Style::drawSliderComplexControl(const QStyleOptionComplex *option, QPainter
             // colors
             const auto reverse(option->direction == Qt::RightToLeft);
             const auto base(_helper->separatorColor(palette));
-            const auto &highlight =
-                hasHighlightNeutral(widget, option, mouseOver, hasFocus) ? _helper->neutralText(palette) : palette.color(QPalette::Highlight);
+            const auto &highlight = hasHighlightNeutral(widget, option, mouseOver, hasFocus) ? _helper->neutralText(palette) : palette.color(HighlightColor);
 
             while (current <= sliderOption->maximum) {
                 // adjust color
@@ -7479,8 +7486,7 @@ bool Style::drawSliderComplexControl(const QStyleOptionComplex *option, QPainter
             const bool upsideDown(sliderOption->upsideDown);
 
             // highlight color
-            const auto &highlight =
-                hasHighlightNeutral(widget, option, mouseOver, hasFocus) ? _helper->neutralText(palette) : palette.color(QPalette::Highlight);
+            const auto &highlight = hasHighlightNeutral(widget, option, mouseOver, hasFocus) ? _helper->neutralText(palette) : palette.color(HighlightColor);
 
             if (sliderOption->orientation == Qt::Horizontal) {
                 auto leftRect(grooveRect);
@@ -7571,7 +7577,7 @@ bool Style::drawDialComplexControl(const QStyleOptionComplex *option, QPainter *
 
         if (enabled) {
             // highlight
-            const auto &highlight = palette.color(QPalette::Highlight);
+            const auto &highlight = palette.color(HighlightColor);
 
             // angles
             const qreal second(dialAngle(sliderOption, sliderOption->sliderPosition));
@@ -7697,7 +7703,7 @@ bool Style::drawTitleBarComplexControl(const QStyleOptionComplex *option, QPaint
         if (useSeparator) {
             painter->setRenderHint(QPainter::Antialiasing, false);
             painter->setBrush(Qt::NoBrush);
-            painter->setPen(palette.color(QPalette::Highlight));
+            painter->setPen(palette.color(HighlightColor));
             painter->drawLine(rect.bottomLeft(), rect.bottomRight());
         }
 
