@@ -333,13 +333,11 @@ QColor Button::backgroundColor() const
     }
 
     auto c = d->client();
-    QColor redColor(c->color(ColorGroup::Warning, ColorRole::Foreground));
 
     if (isPressed()) {
         if (type() == DecorationButtonType::Close) {
-            return redColor.darker();
         } else {
-            return KColorUtils::mix(d->titleBarColor(), d->fontColor(), 0.3);
+            return c->color( ColorGroup::Warning, ColorRole::Foreground );
         }
 
     } else if ((type() == DecorationButtonType::KeepBelow || type() == DecorationButtonType::KeepAbove || type() == DecorationButtonType::Shade)
@@ -349,10 +347,10 @@ QColor Button::backgroundColor() const
     } else if (m_animation->state() == QAbstractAnimation::Running) {
         if (type() == DecorationButtonType::Close) {
             if (d->internalSettings()->outlineCloseButton()) {
-                return c->isActive() ? KColorUtils::mix(redColor, redColor.lighter(), m_opacity) : KColorUtils::mix(redColor.lighter(), redColor, m_opacity);
+                return KColorUtils::mix( d->fontColor(), c->color( ColorGroup::Warning, ColorRole::Foreground ).lighter(), m_opacity );
 
             } else {
-                QColor color(redColor.lighter());
+                QColor color(c->color( ColorGroup::Warning, ColorRole::Foreground ).lighter());
                 color.setAlpha(color.alpha() * m_opacity);
                 return color;
             }
@@ -365,7 +363,7 @@ QColor Button::backgroundColor() const
 
     } else if (isHovered()) {
         if (type() == DecorationButtonType::Close) {
-            return c->isActive() ? redColor.lighter() : redColor;
+            return c->color( ColorGroup::Warning, ColorRole::Foreground ).lighter();
         } else {
             return d->fontColor();
         }
